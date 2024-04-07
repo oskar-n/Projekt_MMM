@@ -26,14 +26,34 @@ void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+//struckts and classes
+struct parameters {
+
+    double n1, n2, ke, kt, R1, L1, J, J1, J2, i1;
+    parameters() {
+        n1 = 1; n2 = 1; ke=1, kt=1, R1=1, L1=1, J=1, J1=1, J2=1, i1=1;
+    }
+};
+
+// Functions
+void create_param(parameters& param) {
+    param.i1 = param.n1 / param.n2;
+	param.J = param.J1 +param.J2 * 1/( param.i1*param.i1);
+}
+
+void calculate_derivative(parameters param);
+
+
 // Main code
 int main(int, char**)
 {
-    //test data
+    //varables
     int   bar_data[11] = { 3,4,100,6,7,8 };
     float x_data[1000] = { 4,25,6, 66};
     float y_data[1000] = { 1,4,5,65,645,5 };
     double x=0;
+
+    parameters param; 
     bool showPlotWindow = false;
 
 
@@ -104,29 +124,55 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // Main loop
+        // ImGui part
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
         if (ImGui::Begin("Przek³adnia", nullptr, ImGuiWindowFlags_NoDecoration))
         {
-            if (ImGui::Button("someting"))
+         
+            ImGui::InputDouble("J1", &param.J1, 1);
+            ImGui::InputDouble("J2", &param.J2, 1);
+            ImGui::InputDouble("n1", &param.n1, 1);
+            ImGui::InputDouble("n2", &param.n2, 1);
+            ImGui::InputDouble("R1", &param.R1, 1);
+            ImGui::InputDouble("L1", &param.L1, 1);
+            ImGui::InputDouble("ke", &param.ke, 1);
+            ImGui::InputDouble("kt", &param.kt, 1);
+            if (ImGui::Button("Plot"))
                 showPlotWindow = true;
-            if (ImGui::InputDouble("liczba", &x, 1) && x > 0)
-            {
-                bar_data[3] = bar_data[3] * x;
-            }
+            
         }
         ImGui::End();
+        // new parameters creation
+		create_param(param);
 
+        //test part
+			bar_data[0] = param.J1;
+            bar_data[1] = param.J2;
+            bar_data[2] = param.n1;
+            bar_data[3] = param.n2;
+            bar_data[4] = param.R1;
+            bar_data[5] = param.L1;
+            bar_data[6] = param.ke;
+            bar_data[7] = param.kt;
+            bar_data[8] = param.J;
+            bar_data[9] = param.i1;
+            
+       
+       
+        //Implot part
         if (showPlotWindow)
         {
+            
             ImGui::Begin("My Window", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
+            ImPlot::SetNextAxesLimits(0, 10, 0, 10);
             if (ImPlot::BeginPlot("My Plot")) {
-               // ImPlot::PlotBars("My Bar Plot", bar_data, 11);
-                ImPlot::PlotLine("My Line Plot", x_data, y_data, 1000);
+                ImPlot::PlotBars("My Bar Plot", bar_data, 10);
+              //  ImPlot::PlotLine("My Line Plot", x_data, y_data, 1000);
                 ImPlot::EndPlot();
             }
             ImGui::End();
+            
         }
 
 
