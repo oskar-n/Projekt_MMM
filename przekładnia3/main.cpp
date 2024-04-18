@@ -13,6 +13,7 @@
 #include "implot_internal.h"
 #include <d3d9.h>
 #include <tchar.h>
+#include <derivative.h>
 
 // Data
 static LPDIRECT3D9              g_pD3D = nullptr;
@@ -26,22 +27,7 @@ void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-//struckts and classes
-struct parameters {
 
-    double n1, n2, ke, kt, R1, L1, J, J1, J2, i1;
-    parameters() {
-        n1 = 1; n2 = 1; ke=1, kt=1, R1=1, L1=1, J=1, J1=1, J2=1, i1=1;
-    }
-};
-
-// Functions
-void create_param(parameters& param) {
-    param.i1 = param.n1 / param.n2;
-	param.J = param.J1 +param.J2 * 1/( param.i1*param.i1);
-}
-
-void calculate_derivative(parameters param);
 
 
 // Main code
@@ -49,8 +35,8 @@ int main(int, char**)
 {
     //varables
     int   bar_data[11] = { 3,4,100,6,7,8 };
-    float x_data[1000] = { 4,25,6, 66};
-    float y_data[1000] = { 1,4,5,65,645,5 };
+    float x_data[1001] = {};
+    float y_data[1001] = {};
     double x=0;
 
     parameters param; 
@@ -61,7 +47,7 @@ int main(int, char**)
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Projekt", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, L"Projekt", (0x00000000L | 0x00C00000L | 0x00080000L | 0x00040000L | 0x00020000L | 0x00010000L), 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -138,13 +124,21 @@ int main(int, char**)
             ImGui::InputDouble("L1", &param.L1, 1);
             ImGui::InputDouble("ke", &param.ke, 1);
             ImGui::InputDouble("kt", &param.kt, 1);
-            if (ImGui::Button("Plot"))
+            if (ImGui::Button("Plot")){
                 showPlotWindow = true;
-            
+                create_param(param);
+                counting(param);
+                for (int i = 0; i < 1001; i++)
+                {
+                    std::cout << y[i] << std::endl;
+                    y_data[i] = y[i];
+                    x_data[i] = i;
+                }
+			}
         }
         ImGui::End();
         // new parameters creation
-		create_param(param);
+		
 
         //test part
 			bar_data[0] = param.J1;
@@ -165,10 +159,10 @@ int main(int, char**)
         {
             
             ImGui::Begin("My Window", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
-            ImPlot::SetNextAxesLimits(0, 10, 0, 10);
+            ImPlot::SetNextAxesLimits(0, 2000, 0, 0.01);
             if (ImPlot::BeginPlot("My Plot")) {
-                ImPlot::PlotBars("My Bar Plot", bar_data, 10);
-              //  ImPlot::PlotLine("My Line Plot", x_data, y_data, 1000);
+                //ImPlot::PlotBars("My Bar Plot", bar_data, 10);
+               ImPlot::PlotLine("My Line Plot", x_data, y_data, 1000);
                 ImPlot::EndPlot();
             }
             ImGui::End();

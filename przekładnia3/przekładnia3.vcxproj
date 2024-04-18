@@ -113,7 +113,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendor\imgui\;$(ProjectDir)vendor\imgui\backends\;$(ProjectDir)vendor\implot\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendor\imgui\;$(ProjectDir)vendor\imgui\backends\;$(ProjectDir)vendor\implot\;$(ProjectDir)src\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +157,7 @@
     <None Include="vendor\imgui\.gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\derivative.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="vendor\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />

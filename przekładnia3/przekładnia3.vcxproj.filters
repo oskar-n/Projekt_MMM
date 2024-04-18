@@ -82,5 +82,8 @@
     <ClInclude Include="vendor\implot\implot_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\derivative.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
