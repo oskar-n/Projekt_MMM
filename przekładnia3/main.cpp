@@ -13,6 +13,7 @@
 #include "implot_internal.h"
 #include <d3d9.h>
 #include <tchar.h>
+
 #include <derivative.h>
 
 // Data
@@ -21,13 +22,37 @@ static LPDIRECT3DDEVICE9        g_pd3dDevice = nullptr;
 static UINT                     g_ResizeWidth = 0, g_ResizeHeight = 0;
 static D3DPRESENT_PARAMETERS    g_d3dpp = {};
 
+
+
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+// deklaracje zasiêgów
+using namespace std;
+// sta³e w programie
+#define N 4 // rz¹d systemu
+#define h 0.001 // krok obliczeñ
+#define T 10.0 // ca³kowity czas symulacji – przedzia³ [0 , T]
+#define L 2.5 // liczba okresów sygna³u sinus w przedziale T
 
+#define PI 3.14159265 // liczba PI
+
+//// nowe typy – macierz kwadratowa (NxN) i wektor (Nx1)
+//typedef struct { double n[N]; } Vect;
+//typedef struct { double n[N][N]; } Matr;
+//
+//// pomocniczy typ – kolejne bajty danej ’double’
+//typedef union { char c[sizeof(double)]; double d; } Box;
+
+// zmienne globalne w programie
+double us[(int)(1.0 * T / h) + 1]; // sygna³ wejœciowy sinus
+double uf[(int)(1.0 * T / h) + 1]; // sygna³ wejœciowy fala prostok¹tna
+double y[(int)(1.0 * T / h) + 1]; // sygna³ wyjœciowy
+double M = 8; // amplituda sygna³u wejœciowego
+//Box z; // zmienna: pojedyncza wartoœæ sygna³u (u lub y)
 
 
 // Main code
@@ -35,9 +60,13 @@ int main(int, char**)
 {
     //varables
     int   bar_data[11] = { 3,4,100,6,7,8 };
-    float x_data[1001] = {};
-    float y_data[1001] = {};
+    int i,f=0, total; //f pomocniczy do trójk¹tnej
+    double w;
+    char signal='s';
+    float x_data[10001] = {};
+    float y_data[10001] = {};
     double x=0;
+    bool signal_panel = false, down =false;
 
     parameters param; 
     bool showPlotWindow = false;
@@ -110,7 +139,7 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // ImGui part
+        // Czêœæ wyœwietlaj¹ca ImGui
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
         if (ImGui::Begin("Przek³adnia", nullptr, ImGuiWindowFlags_NoDecoration))
@@ -124,45 +153,71 @@ int main(int, char**)
             ImGui::InputDouble("L1", &param.L1, 1);
             ImGui::InputDouble("ke", &param.ke, 1);
             ImGui::InputDouble("kt", &param.kt, 1);
+            if (ImGui::Button("Sinus"))
+            {
+                signal = 's';
+                signal_panel = true;
+            };
+            if (ImGui::Button("Prostokatna"))
+			{
+				signal = 'p';
+                signal_panel = true;
+                
+			};
+            if (ImGui::Button("Trojkatna"))
+            {
+                signal = 't';
+                signal_panel = true;
+            };
+
+            if (signal_panel)
+			{
+                for (int d = 0; d < 10; d++)
+                {
+                    ImGui::Spacing();
+                }
+                    ImGui::InputDouble("Amplituda", &M, 1);
+                
+			}
+            int k=0;
             if (ImGui::Button("Plot")){
                 showPlotWindow = true;
                 create_param(param);
                 counting(param);
-                for (int i = 0; i < 1001; i++)
+                total = sizeof(us) / sizeof(us[0]); // rozmiar wektorów danych
+                w = 2.0 * PI * L / T; // czêstotliwoœæ sinusoidy
+                for ( i = 0; i < total; i++) // obliczenie pobudzenia – sinus lub fala prostok¹tna
                 {
-                    std::cout << y[i] << std::endl;
-                    y_data[i] = y[i];
+                    if (sin(w * i * h) * M == M || i == 9000) down = true;         // drugie warunki, ¿eby by³o dzia³a³o od 7000 w górê, do zmiany
+                    if (sin(w * i * h) * M == -M || i == 7000) down = false;
+
+                    if (!down) f++;
+                    else f--;
+
+                    if (signal == 's') us[i] = M * sin(w * i * h); // sygna³ wejœciowy sinus: u=M*sin(w*t) , t=i*h
+                    else if (signal == 'p') us[i] = (sin(w * i * h)>0 ? M : -M); // sygna³ wejœciowy fala prostok¹tna
+                    else if (signal == 't') us[i] =  f*h*M; // sygna³ wejœciowy trójk¹tny
+                }
+                for (int i = 0; i < total-1; i++)
+                {
+                    std::cout << us[i] << std::endl;
+                    y_data[i] = us[i];
                     x_data[i] = i;
                 }
+                f = 0;
+                signal_panel = false;
 			}
         }
         ImGui::End();
-        // new parameters creation
-		
-
-        //test part
-			bar_data[0] = param.J1;
-            bar_data[1] = param.J2;
-            bar_data[2] = param.n1;
-            bar_data[3] = param.n2;
-            bar_data[4] = param.R1;
-            bar_data[5] = param.L1;
-            bar_data[6] = param.ke;
-            bar_data[7] = param.kt;
-            bar_data[8] = param.J;
-            bar_data[9] = param.i1;
-            
-       
-       
-        //Implot part
+        
+        //Rysowanie wykresów
         if (showPlotWindow)
         {
             
             ImGui::Begin("My Window", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
-            ImPlot::SetNextAxesLimits(0, 2000, 0, 0.01);
+            ImPlot::SetNextAxesLimits(0, 10000, -10, 10);
             if (ImPlot::BeginPlot("My Plot")) {
-                //ImPlot::PlotBars("My Bar Plot", bar_data, 10);
-               ImPlot::PlotLine("My Line Plot", x_data, y_data, 1000);
+               ImPlot::PlotLine("My Line Plot", x_data, y_data, 10000);
                 ImPlot::EndPlot();
             }
             ImGui::End();
