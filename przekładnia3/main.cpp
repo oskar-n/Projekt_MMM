@@ -35,23 +35,15 @@ using namespace std;
 // stałe w programie
 #define N 2 // rząd systemu
 #define h 0.001 // krok obliczeń
-#define T 10.0 // całkowity czas symulacji – przedział [0 , T]
 #define L 2.5 // liczba okresów sygnału sinus w przedziale T
-
 #define PI 3.14159265 // liczba PI
 
-//// nowe typy – macierz kwadratowa (NxN) i wektor (Nx1)
-//typedef struct { double n[N]; } Vect;
-//typedef struct { double n[N][N]; } Matr;
-//
-//// pomocniczy typ – kolejne bajty danej ’double’
-//typedef union { char c[sizeof(double)]; double d; } Box;
-
 // zmienne globalne w programie
-double us[(int)(1.0 * T / h) + 1]; // sygnał wejściowy sinus
-double uf[(int)(1.0 * T / h) + 1]; // sygnał wejściowy fala prostokątna
-double I[(int)(1.0 * T / h) + 1]; // sygnał wyjściowy
-double W[(int)(1.0 * T / h) + 1];
+
+double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
+std::vector <float> us((1.0 * T / h) + 1); // sygnał wejściowy sinus
+std::vector <float> I((1.0 * T / h) + 1); // sygnał wyjściowy
+std::vector <float> W((1.0 * T / h) + 1);
 double M = 8; // amplituda sygnału wejściowego
 //Box z; // zmienna: pojedyncza wartość sygnału (u lub y)
 
@@ -60,15 +52,11 @@ double M = 8; // amplituda sygnału wejściowego
 int main(int, char**)
 {
     //variables
-    int   bar_data[11] = { 3,4,100,6,7,8 };
     int i, f = 0, total; //f pomocniczy do trójkątnej
     double w;
     char signal = 's';
-    float x_data[10001] = {}; //os x wykresow
-    float wejsciowy[10001] = {};//wykres us
-    float prad[10001] = {};//wykres I
-    float omega[10001] = {};//wykres W
-    double x = 0;
+    std::vector <float> x_data((1.0 * T / h) + 1); //os x wykresow
+    double x = 0; //zmienna pomocnicza
     bool signal_panel = false, down = false; //dodatkowe panele GUI
 
     parameters param;
@@ -148,7 +136,7 @@ int main(int, char**)
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
         if (ImGui::Begin("Przekładnia", nullptr, ImGuiWindowFlags_NoDecoration))
         {
-
+            
             ImGui::InputDouble("J1", &param.J1, 1);
             ImGui::InputDouble("J2", &param.J2, 1);
             ImGui::InputDouble("n1", &param.n1, 1);
@@ -182,6 +170,7 @@ int main(int, char**)
                 }
 
                 ImGui::InputDouble("Amplituda", &M, 1);
+                ImGui::InputDouble("T", &T, 1);
 
             }
             int k = 0;
@@ -190,13 +179,13 @@ int main(int, char**)
                 showPlotWindow = true;
                 create_param(param);
                 //counting(param);
-                total = sizeof(us) / sizeof(us[0]); // rozmiar wektorów danych
+                total = 10000; // rozmiar wektorów danych
                 w = 2.0 * PI * L / T; // częstotliwość sinusoidy
                 for (i = 0; i < total; i++) // obliczenie pobudzenia – sinus lub fala prostokątna
                 {
 
-                    if (sin(w * i * h) * M == M || i == 9000) down = true;         // drugie warunki, żeby było działało od 7000 w górę, do zmiany
-                    if (sin(w * i * h) * M == -M || i == 7000) down = false;
+                    if (sin(w * i * h) * M >= M || i==9000) down = true;         // drugie warunki, żeby było działało od 7000 w górę, do zmiany
+                    if (sin(w * i * h) * M <= -M || i == 7000) down = false;
 
                     if (!down) f++;
                     else f--;
@@ -209,12 +198,10 @@ int main(int, char**)
 
                 counting(param, us, I, W, total, h);
 
-                for (int i = 0; i < total - 1; i++) //przekazywanie wartosci na wykresy
+                for (int i = 0; i < total ; i++) //przekazywanie wartosci na wykresy
                 {
                     x_data[i] = i;
-                    wejsciowy[i] = us[i];
-                    prad[i] = I[i];
-                    omega[i] = W[i];
+                    
                 }
 
 
@@ -233,13 +220,13 @@ int main(int, char**)
         {
 
             ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
-            ImPlot::SetNextAxesLimits(0, 10000, -10, 10);
+            ImPlot::SetNextAxesLimits(0, (1.0 * T / h), -M, M);
 
             if (ImPlot::BeginPlot("Wykresy"))
             {
-                ImPlot::PlotLine("Us", x_data, wejsciowy, 10000);
-                ImPlot::PlotLine("I", x_data, prad, 10000);
-                ImPlot::PlotLine("W", x_data, omega, 10000);
+                ImPlot::PlotLine("Us", x_data.data(), us.data(), (1.0 * T / h));
+                ImPlot::PlotLine("I", x_data.data(), I.data(), (1.0 * T / h));
+                ImPlot::PlotLine("W", x_data.data(), W.data(), (1.0 * T / h));
                 ImPlot::EndPlot();
             }
 
