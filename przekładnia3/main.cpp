@@ -30,46 +30,50 @@ void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// deklaracje zasiÍgÛw
+// deklaracje zasiƒôg√≥w
 using namespace std;
-// sta≥e w programie
-#define N 4 // rzπd systemu
-#define h 0.001 // krok obliczeÒ
-#define T 10.0 // ca≥kowity czas symulacji ñ przedzia≥ [0 , T]
-#define L 2.5 // liczba okresÛw sygna≥u sinus w przedziale T
+// sta≈Çe w programie
+#define N 2 // rzƒÖd systemu
+#define h 0.001 // krok oblicze≈Ñ
+#define T 10.0 // ca≈Çkowity czas symulacji ‚Äì przedzia≈Ç [0 , T]
+#define L 2.5 // liczba okres√≥w sygna≈Çu sinus w przedziale T
 
 #define PI 3.14159265 // liczba PI
 
-//// nowe typy ñ macierz kwadratowa (NxN) i wektor (Nx1)
+//// nowe typy ‚Äì macierz kwadratowa (NxN) i wektor (Nx1)
 //typedef struct { double n[N]; } Vect;
 //typedef struct { double n[N][N]; } Matr;
 //
-//// pomocniczy typ ñ kolejne bajty danej ídoubleí
+//// pomocniczy typ ‚Äì kolejne bajty danej ‚Äôdouble‚Äô
 //typedef union { char c[sizeof(double)]; double d; } Box;
 
 // zmienne globalne w programie
-double us[(int)(1.0 * T / h) + 1]; // sygna≥ wejúciowy sinus
-double uf[(int)(1.0 * T / h) + 1]; // sygna≥ wejúciowy fala prostokπtna
-double y[(int)(1.0 * T / h) + 1]; // sygna≥ wyjúciowy
-double M = 8; // amplituda sygna≥u wejúciowego
-//Box z; // zmienna: pojedyncza wartoúÊ sygna≥u (u lub y)
+double us[(int)(1.0 * T / h) + 1]; // sygna≈Ç wej≈õciowy sinus
+double uf[(int)(1.0 * T / h) + 1]; // sygna≈Ç wej≈õciowy fala prostokƒÖtna
+double I[(int)(1.0 * T / h) + 1]; // sygna≈Ç wyj≈õciowy
+double W[(int)(1.0 * T / h) + 1];
+double M = 8; // amplituda sygna≈Çu wej≈õciowego
+//Box z; // zmienna: pojedyncza warto≈õƒá sygna≈Çu (u lub y)
 
 
 // Main code
 int main(int, char**)
 {
-    //varables
+    //variables
     int   bar_data[11] = { 3,4,100,6,7,8 };
-    int i,f=0, total; //f pomocniczy do trÛjkπtnej
+    int i, f = 0, total; //f pomocniczy do tr√≥jkƒÖtnej
     double w;
-    char signal='s';
-    float x_data[10001] = {};
-    float y_data[10001] = {};
-    double x=0;
-    bool signal_panel = false, down =false;
+    char signal = 's';
+    float x_data[10001] = {}; //os x wykresow
+    float wejsciowy[10001] = {};//wykres us
+    float prad[10001] = {};//wykres I
+    float omega[10001] = {};//wykres W
+    double x = 0;
+    bool signal_panel = false, down = false; //dodatkowe panele GUI
 
-    parameters param; 
-    bool showPlotWindow = false;
+    parameters param;
+    bool showPlotWindow = false; //do okna GUI
+
 
 
     // Create application window
@@ -139,12 +143,12 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // CzÍúÊ wyúwietlajπca ImGui
+        // Czƒô≈õƒá wy≈õwietlajƒÖca ImGui
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
-        if (ImGui::Begin("Przek≥adnia", nullptr, ImGuiWindowFlags_NoDecoration))
+        if (ImGui::Begin("Przek≈Çadnia", nullptr, ImGuiWindowFlags_NoDecoration))
         {
-         
+
             ImGui::InputDouble("J1", &param.J1, 1);
             ImGui::InputDouble("J2", &param.J2, 1);
             ImGui::InputDouble("n1", &param.n1, 1);
@@ -159,11 +163,11 @@ int main(int, char**)
                 signal_panel = true;
             };
             if (ImGui::Button("Prostokatna"))
-			{
-				signal = 'p';
+            {
+                signal = 'p';
                 signal_panel = true;
-                
-			};
+
+            };
             if (ImGui::Button("Trojkatna"))
             {
                 signal = 't';
@@ -171,57 +175,88 @@ int main(int, char**)
             };
 
             if (signal_panel)
-			{
+            {
                 for (int d = 0; d < 10; d++)
                 {
                     ImGui::Spacing();
                 }
-                    ImGui::InputDouble("Amplituda", &M, 1);
-                
-			}
-            int k=0;
-            if (ImGui::Button("Plot")){
+
+                ImGui::InputDouble("Amplituda", &M, 1);
+
+            }
+            int k = 0;
+            if (ImGui::Button("Plot"))
+            {
                 showPlotWindow = true;
                 create_param(param);
-                counting(param);
-                total = sizeof(us) / sizeof(us[0]); // rozmiar wektorÛw danych
-                w = 2.0 * PI * L / T; // czÍstotliwoúÊ sinusoidy
-                for ( i = 0; i < total; i++) // obliczenie pobudzenia ñ sinus lub fala prostokπtna
+                //counting(param);
+                total = sizeof(us) / sizeof(us[0]); // rozmiar wektor√≥w danych
+                w = 2.0 * PI * L / T; // czƒôstotliwo≈õƒá sinusoidy
+                for (i = 0; i < total; i++) // obliczenie pobudzenia ‚Äì sinus lub fala prostokƒÖtna
                 {
-                    if (sin(w * i * h) * M == M || i == 9000) down = true;         // drugie warunki, øeby by≥o dzia≥a≥o od 7000 w gÛrÍ, do zmiany
+
+                    if (sin(w * i * h) * M == M || i == 9000) down = true;         // drugie warunki, ≈ºeby by≈Ço dzia≈Ça≈Ço od 7000 w g√≥rƒô, do zmiany
                     if (sin(w * i * h) * M == -M || i == 7000) down = false;
 
                     if (!down) f++;
                     else f--;
 
-                    if (signal == 's') us[i] = M * sin(w * i * h); // sygna≥ wejúciowy sinus: u=M*sin(w*t) , t=i*h
-                    else if (signal == 'p') us[i] = (sin(w * i * h)>0 ? M : -M); // sygna≥ wejúciowy fala prostokπtna
-                    else if (signal == 't') us[i] =  f*h*M; // sygna≥ wejúciowy trÛjkπtny
+                    if (signal == 's') us[i] = M * sin(w * i * h); // sygna≈Ç wej≈õciowy sinus: u=M*sin(w*t) , t=i*h
+                    else if (signal == 'p') us[i] = (sin(w * i * h) > 0 ? M : -M); // sygna≈Ç wej≈õciowy fala prostokƒÖtna
+                    else if (signal == 't') us[i] = f * h * M; // sygna≈Ç wej≈õciowy tr√≥jkƒÖtny
+
                 }
-                for (int i = 0; i < total-1; i++)
+
+                counting(param, us, I, W, total, h);
+
+                for (int i = 0; i < total - 1; i++) //przekazywanie wartosci na wykresy
                 {
-                    std::cout << us[i] << std::endl;
-                    y_data[i] = us[i];
                     x_data[i] = i;
+                    wejsciowy[i] = us[i];
+                    prad[i] = I[i];
+                    omega[i] = W[i];
                 }
+
+
+
                 f = 0;
                 signal_panel = false;
-			}
+
+            }
+
+
         }
         ImGui::End();
-        
-        //Rysowanie wykresÛw
+
+        //Rysowanie wykres√≥w
         if (showPlotWindow)
         {
-            
-            ImGui::Begin("My Window", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
+
+            ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
             ImPlot::SetNextAxesLimits(0, 10000, -10, 10);
-            if (ImPlot::BeginPlot("My Plot")) {
-               ImPlot::PlotLine("My Line Plot", x_data, y_data, 10000);
+
+            if (ImPlot::BeginPlot("Wykresy"))
+            {
+                ImPlot::PlotLine("Us", x_data, wejsciowy, 10000);
+                ImPlot::PlotLine("I", x_data, prad, 10000);
+                ImPlot::PlotLine("W", x_data, omega, 10000);
                 ImPlot::EndPlot();
             }
+
+            /*if (ImPlot::BeginPlot("I"))
+            {
+                ImPlot::PlotLine("I", x_data, prad, 10000);
+                ImPlot::EndPlot();
+            }
+
+            if (ImPlot::BeginPlot("W"))
+            {
+                ImPlot::PlotLine("W", x_data, omega, 10000);
+                ImPlot::EndPlot();
+            }*/
+
             ImGui::End();
-            
+
         }
 
 
