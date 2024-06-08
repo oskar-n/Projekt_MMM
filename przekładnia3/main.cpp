@@ -41,9 +41,9 @@ using namespace std;
 // zmienne globalne w programie
 
 double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
-std::vector <float> us((1.0 * T / h) + 1); // sygnał wejściowy sinus
-std::vector <float> I((1.0 * T / h) + 1); // sygnał wyjściowy
-std::vector <float> W((1.0 * T / h) + 1);
+std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy sinus
+std::vector <double> I((1.0 * T / h) + 1); // sygnał wyjściowy
+std::vector <double> W((1.0 * T / h) + 1);
 double M = 8; // amplituda sygnału wejściowego
 //Box z; // zmienna: pojedyncza wartość sygnału (u lub y)
 
@@ -52,10 +52,10 @@ double M = 8; // amplituda sygnału wejściowego
 int main(int, char**)
 {
     //variables
-    int i, f = 0, total; //f pomocniczy do trójkątnej
+    double i, f = 0, total; //f pomocniczy do trójkątnej
     double w;
     char signal = 's';
-    std::vector <float> x_data((1.0 * T / h) + 1); //os x wykresow
+    std::vector <double> x_data((1.0 * T / h) + 1); //os x wykresow
     double x = 0; //zmienna pomocnicza
     bool signal_panel = false, down = false; //dodatkowe panele GUI
 
@@ -68,7 +68,7 @@ int main(int, char**)
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, L"Projekt", (0x00000000L | 0x00C00000L | 0x00080000L | 0x00040000L | 0x00020000L | 0x00010000L), 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowExW(0L, wc.lpszClassName, L"Projekt", (0x00000000L | 0x00C00000L | 0x00080000L | 0x00040000L | 0x00020000L | 0x00010000L), 100, 100, 1280, 1200, nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -173,32 +173,56 @@ int main(int, char**)
                 ImGui::InputDouble("T", &T, 1);
 
             }
+            us.resize((1.0 * T / h) + 1);
+
             int k = 0;
             if (ImGui::Button("Plot"))
             {
                 showPlotWindow = true;
                 create_param(param);
-                //counting(param);
-                total = 10000; // rozmiar wektorów danych
+                
+                total = (1.0 * T / h) + 1; // rozmiar wektorów danych
                 w = 2.0 * PI * L / T; // częstotliwość sinusoidy
+              
+                us.clear();
+                us.resize(total);
+                
+
+                double slope = (4.0 * M) / (T / L); // Slope for the triangular wave
+                double current_value = M; // Start from -M
+                bool increasing = true;
+
                 for (i = 0; i < total; i++) // obliczenie pobudzenia – sinus lub fala prostokątna
                 {
-
-                    if (sin(w * i * h) * M >= M || i==9000) down = true;         // drugie warunki, żeby było działało od 7000 w górę, do zmiany
-                    if (sin(w * i * h) * M <= -M || i == 7000) down = false;
-
-                    if (!down) f++;
-                    else f--;
-
                     if (signal == 's') us[i] = M * sin(w * i * h); // sygnał wejściowy sinus: u=M*sin(w*t) , t=i*h
                     else if (signal == 'p') us[i] = (sin(w * i * h) > 0 ? M : -M); // sygnał wejściowy fala prostokątna
-                    else if (signal == 't') us[i] = f * h * M; // sygnał wejściowy trójkątny
-
+                    else if (signal == 't') {
+                        if (increasing) {
+                            current_value += slope * h;
+                            if (current_value >= M) {
+                                current_value = M;
+                                increasing = false;
+                            }
+                        }
+                        else {
+                            current_value -= slope * h;
+                            if (current_value <= -M) {
+                                current_value = -M;
+                                increasing = true;
+                            }
+                        }
+                        us[i] = current_value; // sygnał wejściowy trójkątny
+                    }
                 }
+                I.clear(); W.clear();
+                I.resize(total); W.resize(total); // zmiana rozmiaru wektorów danych
 
+              
                 counting(param, us, I, W, total, h);
 
-                for (int i = 0; i < total ; i++) //przekazywanie wartosci na wykresy
+                x_data.clear();
+                x_data.resize(total);
+                for (int i = 0; i < total-1 ; i++) //przekazywanie wartosci na wykresy
                 {
                     x_data[i] = i;
                     
@@ -218,32 +242,42 @@ int main(int, char**)
         //Rysowanie wykresów
         if (showPlotWindow)
         {
-
+            ImGui::SetNextWindowSize(ImVec2(800, 1000), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
-            ImPlot::SetNextAxesLimits(0, (1.0 * T / h), -M, M);
 
-            if (ImPlot::BeginPlot("Wykresy"))
+            // Plot for 'Us'
+            ImPlot::SetNextAxesToFit();
+            ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Red color
+            if (ImPlot::BeginPlot("Us"))
             {
                 ImPlot::PlotLine("Us", x_data.data(), us.data(), (1.0 * T / h));
+                ImPlot::EndPlot();
+            }
+
+            ImGui::Spacing(); // Add spacing between plots
+
+            // Plot for 'I'
+            ImPlot::SetNextAxesToFit();
+            ImPlot::SetNextLineStyle(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)); // Green color
+            if (ImPlot::BeginPlot("I"))
+            {
                 ImPlot::PlotLine("I", x_data.data(), I.data(), (1.0 * T / h));
+                ImPlot::EndPlot();
+            }
+
+            ImGui::Spacing(); // Add spacing between plots
+
+            // Plot for 'W'
+            ImPlot::SetNextAxesToFit();
+            ImPlot::SetNextLineStyle(ImVec4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue color
+            if (ImPlot::BeginPlot("W"))
+            {
                 ImPlot::PlotLine("W", x_data.data(), W.data(), (1.0 * T / h));
                 ImPlot::EndPlot();
             }
 
-            /*if (ImPlot::BeginPlot("I"))
-            {
-                ImPlot::PlotLine("I", x_data, prad, 10000);
-                ImPlot::EndPlot();
-            }
-
-            if (ImPlot::BeginPlot("W"))
-            {
-                ImPlot::PlotLine("W", x_data, omega, 10000);
-                ImPlot::EndPlot();
-            }*/
-
             ImGui::End();
-
         }
 
 
