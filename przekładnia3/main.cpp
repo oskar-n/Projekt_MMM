@@ -34,7 +34,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 using namespace std;
 // stałe w programie
 #define N 2 // rząd systemu
-#define h 0.0001 // krok obliczeń
+#define h 0.001 // krok obliczeń
 #define PI 3.14159265 // liczba PI
 
 // zmienne globalne w programie
@@ -186,7 +186,6 @@ int main(int, char**)
                 us.clear();
                 us.resize(total);
                 
-
                 double slope = (4.0 * M) / w; // Slope for the triangular wave
                 double current_value = M; // Start from -M
                 bool increasing = true;
@@ -247,7 +246,7 @@ int main(int, char**)
             ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
 
             // Plot for 'Us'
-            ImPlot::SetNextAxesToFit();
+            //ImPlot::SetNextAxesToFit();
             ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Red color
             if (ImPlot::BeginPlot("Us"))
             {

@@ -29,10 +29,11 @@ void counting(parameters param, std::vector<double>& us, std::vector<double>& I,
 
 	for (int i = 0; i < total - 1; i++)
 	{
-		i1p[i] = -(param.R1 / param.L1) * I[i] - (param.ke / param.L1) * W[i] + (us[i] / param.L1); //pierwsza pochodna I
+		
+		i1p[i + 1] =  -(param.R1 / param.L1) * I[i] - (param.ke / param.L1) * W[i] + (us[i] / param.L1); //pierwsza pochodna I
 
-		w1p[i] = (param.kt / param.J) * I[i];//pierwsza pochodna W
-
+		w1p[i + 1] =  (param.kt / param.J) * I[i];//pierwsza pochodna W
+		
 		I[i + 1] = I[i] + krok * i1p[i];//rownania na I
 
 		W[i + 1] = W[i] + krok * w1p[i];//rownania na W
@@ -49,5 +50,5 @@ void counting(parameters param, std::vector<double>& us, std::vector<double>& I,
 
 void create_param(parameters& param) {
 	param.i1 = param.n2 / param.n1;
-	param.J = param.J1 + param.J2 * 1 / (param.i1 * param.i1);
+	param.J = param.J1 + (param.J2 * 1 / (param.i1 * param.i1));
 }
