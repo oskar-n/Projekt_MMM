@@ -34,8 +34,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 using namespace std;
 // stałe w programie
 #define N 2 // rząd systemu
-#define h 0.001 // krok obliczeń
-#define L 2.5 // liczba okresów sygnału sinus w przedziale T
+#define h 0.0001 // krok obliczeń
 #define PI 3.14159265 // liczba PI
 
 // zmienne globalne w programie
@@ -45,6 +44,9 @@ std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy sinus
 std::vector <double> I((1.0 * T / h) + 1); // sygnał wyjściowy
 std::vector <double> W((1.0 * T / h) + 1);
 double M = 8; // amplituda sygnału wejściowego
+
+double w = 1; //okres wygnalu wejsciowego
+
 //Box z; // zmienna: pojedyncza wartość sygnału (u lub y)
 
 
@@ -53,7 +55,6 @@ int main(int, char**)
 {
     //variables
     double i, f = 0, total; //f pomocniczy do trójkątnej
-    double w;
     char signal = 's';
     std::vector <double> x_data((1.0 * T / h) + 1); //os x wykresow
     double x = 0; //zmienna pomocnicza
@@ -61,8 +62,6 @@ int main(int, char**)
 
     parameters param;
     bool showPlotWindow = false; //do okna GUI
-
-
 
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
@@ -169,8 +168,9 @@ int main(int, char**)
                     ImGui::Spacing();
                 }
 
-                ImGui::InputDouble("Amplituda", &M, 1);
-                ImGui::InputDouble("T", &T, 1);
+                ImGui::InputDouble("Amplituda", &M, 0.5);
+                ImGui::InputDouble("T", &T, 0.5);
+                ImGui::InputDouble("Okres", &w, 0.5);
 
             }
             us.resize((1.0 * T / h) + 1);
@@ -182,20 +182,23 @@ int main(int, char**)
                 create_param(param);
                 
                 total = (1.0 * T / h) + 1; // rozmiar wektorów danych
-                w = 2.0 * PI * L / T; // częstotliwość sinusoidy
               
                 us.clear();
                 us.resize(total);
                 
 
-                double slope = (4.0 * M) / (T / L); // Slope for the triangular wave
+                double slope = (4.0 * M) / w; // Slope for the triangular wave
                 double current_value = M; // Start from -M
                 bool increasing = true;
 
                 for (i = 0; i < total; i++) // obliczenie pobudzenia – sinus lub fala prostokątna
                 {
-                    if (signal == 's') us[i] = M * sin(w * i * h); // sygnał wejściowy sinus: u=M*sin(w*t) , t=i*h
-                    else if (signal == 'p') us[i] = (sin(w * i * h) > 0 ? M : -M); // sygnał wejściowy fala prostokątna
+                    if (signal == 's') 
+                        us[i] = M * sin((2*PI/w) * i * h); // sygnał wejściowy sinus: u=M*sin(w*t) , t=i*h
+
+                    else if (signal == 'p') 
+                        us[i] = (sin((2*PI/w) *i * h) > 0 ? M : -M); // sygnał wejściowy fala prostokątna
+
                     else if (signal == 't') {
                         if (increasing) {
                             current_value += slope * h;
@@ -228,13 +231,10 @@ int main(int, char**)
                     
                 }
 
-
-
                 f = 0;
                 signal_panel = false;
 
             }
-
 
         }
         ImGui::End();
@@ -242,7 +242,7 @@ int main(int, char**)
         //Rysowanie wykresów
         if (showPlotWindow)
         {
-            ImGui::SetNextWindowSize(ImVec2(800, 1000), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(1000, 800), ImGuiCond_Always);
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
 
@@ -279,8 +279,6 @@ int main(int, char**)
 
             ImGui::End();
         }
-
-
 
         // Rendering
         ImGui::EndFrame();
