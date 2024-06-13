@@ -291,8 +291,7 @@ int main(int, char**)
 
         }
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && showPlotWindow==false)
-        {
-            
+        { 
             done = true;
         }
 
@@ -306,7 +305,7 @@ int main(int, char**)
                 showPlotWindow = false;
             }
 
-            ImGui::SetNextWindowSize(ImVec2(1000, 1000), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(1200, 600), ImGuiCond_Always);
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Wykresy", &showPlotWindow); // 
 
