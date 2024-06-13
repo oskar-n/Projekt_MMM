@@ -18,7 +18,7 @@ struct parameters {
 
 
 //obliczanie pochodnych funkcji I i W
-void counting(parameters param, std::vector<double>& us, std::vector<double>& I, std::vector<double>& W, double total, float krok)
+void counting(parameters param, std::vector<double>& us, std::vector<double>& I, std::vector<double>& W, double total, float step)
 {
 
 	std::vector<double> i1p, w1p; //pochodne funkcji I i W
@@ -34,9 +34,9 @@ void counting(parameters param, std::vector<double>& us, std::vector<double>& I,
 
 		w1p[i + 1] =  (param.kt / param.J) * I[i];//pierwsza pochodna W
 		
-		I[i + 1] = I[i] + krok * i1p[i];//rownania na I
+		I[i + 1] = I[i] + step * i1p[i];//rownania na I
 
-		W[i + 1] = W[i] + krok * w1p[i];//rownania na W
+		W[i + 1] = W[i] + step * w1p[i];//rownania na W
 
 	}
 
