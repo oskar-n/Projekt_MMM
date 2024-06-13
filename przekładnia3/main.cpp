@@ -141,7 +141,7 @@ int main(int, char**)
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
         if (ImGui::Begin("Przekładnia", nullptr, ImGuiWindowFlags_NoDecoration))
         {
-            ImGui::PushItemWidth(100);
+            ImGui::PushItemWidth(150);
             ImGui::InputDouble("J1", &param.J1, 1);
             ImGui::InputDouble("J2", &param.J2, 1);
             ImGui::InputDouble("n1", &param.n1, 1);
@@ -219,15 +219,11 @@ int main(int, char**)
                 }
                 else
                 {
-                    
                     ImGui::InputDouble("Wartosc", &M, 0.5);
                     ImGui::InputDouble("Czas symulacji", &T, 0.5);
                 }
 
             }
-            ImGui::PopItemWidth();
-
-
             us.resize((1.0 * T / h) + 1);
             
             for(int i = 0; i < 10; i++)
@@ -306,8 +302,7 @@ int main(int, char**)
 
         }
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)) && showPlotWindow==false)
-        {
-            
+        { 
             done = true;
         }
 
@@ -321,7 +316,7 @@ int main(int, char**)
                 showPlotWindow = false;
             }
 
-            ImGui::SetNextWindowSize(ImVec2(1000, 1000), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(1200, 600), ImGuiCond_Always);
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Wykresy", &showPlotWindow); // 
 

@@ -23,14 +23,14 @@ void counting(parameters param, std::vector<double>& us, std::vector<double>& I,
 
 	std::vector<double> i1p, w1p; //pochodne funkcji I i W
 	i1p.resize(total); w1p.resize(total);
-	
+
 
 	i1p[0] = 0; w1p[0] = 0; //zerowe warunki poczatkowe
 
 	for (int i = 0; i < total - 1; i++)
 	{
-		
-		i1p[i + 1] =  -(param.R1 / param.L1) * I[i] - (param.ke / param.L1) * W[i] + (us[i] / param.L1); //pierwsza pochodna I
+
+		i1p[i + 1] = -(param.R1 / param.L1) * I[i] - (param.ke / param.L1) * W[i] + (us[i] / param.L1); //pierwsza pochodna I
 
 		w1p[i + 1] =  (param.kt / param.J) * I[i];//pierwsza pochodna W
 		
@@ -40,9 +40,9 @@ void counting(parameters param, std::vector<double>& us, std::vector<double>& I,
 
 	}
 
-	for (int i = 0; i < total-1; i++)
+	for (int i = 0; i < total - 1; i++)
 	{
-		W[i] = W[i] * 1/param.i1; //przeliczenie na predkosc katowa
+		W[i] = W[i] * 1 / param.i1; //przeliczenie na predkosc katowa
 	}
 
 }
