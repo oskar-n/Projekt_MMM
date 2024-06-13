@@ -169,6 +169,12 @@ int main(int, char**)
                 signal_panel = true;
             };
 
+            if (ImGui::Button("Dirac"))
+            {
+                signal = 'd';
+                signal_panel = true;
+            }
+
             if (signal_panel)
             {
                 for (int d = 0; d < 10; d++)
@@ -176,7 +182,7 @@ int main(int, char**)
                     ImGui::Spacing();
                 }
 
-                if (signal != 'h')
+                if (signal == 's' || signal == 'p' || signal == 't')
                 {
                     ImGui::InputDouble("Amplituda", &M, 0.5);
                     ImGui::InputDouble("T", &T, 0.5);
@@ -231,9 +237,15 @@ int main(int, char**)
                         }
                         us[i] = current_value; // sygnał wejściowy trójkątny
                     }
+
                     else if (signal == 'h')
                     {
                         us[i] = M;
+                    }
+
+                    else if (signal == 'd')
+                    {
+                        us[0] = M;
                     }
                 }
 
