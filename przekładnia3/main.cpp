@@ -32,14 +32,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // zmienne globalne w programie
 
-double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
-double h = 0.001; // krok obliczeń
-double M = 8; // amplituda sygnału wejściowego
-double w = 1; //okres wygnalu wejsciowego
-std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy 
-std::vector <double> I((1.0 * T / h) + 1); // natężenie prądu
-std::vector <double> W((1.0 * T / h) + 1); // prędkość kątowa
-
+//double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
+//double h = 0.001; // krok obliczeń
+//double M = 8; // amplituda sygnału wejściowego
+//double w = 1; //okres wygnalu wejsciowego
+//std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy 
+//std::vector <double> I((1.0 * T / h) + 1); // natężenie prądu
+//std::vector <double> W((1.0 * T / h) + 1); // prędkość kątowa
+//
 
 
 
@@ -47,6 +47,15 @@ std::vector <double> W((1.0 * T / h) + 1); // prędkość kątowa
 int main(int, char**)
 {
     //variables
+
+    double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
+    double h = 0.001; // krok obliczeń
+    double M = 8; // amplituda sygnału wejściowego
+    double w = 1; //okres wygnalu wejsciowego
+    std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy 
+    std::vector <double> I((1.0 * T / h) + 1); // natężenie prądu
+    std::vector <double> W((1.0 * T / h) + 1); // prędkość kątowa
+
     double i, f = 0, total; //f pomocniczy do trójkątnej
     char signal = 's';
     std::vector <double> x_data((1.0 * T / h) + 1); //os x wykresow
@@ -55,6 +64,8 @@ int main(int, char**)
 
     parameters param;
     bool showPlotWindow = false; //do okna GUI
+
+
 
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
@@ -92,6 +103,7 @@ int main(int, char**)
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+
     // Main loop
     bool done = false;
     while (!done)
@@ -122,6 +134,7 @@ int main(int, char**)
         ImGui_ImplDX9_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
+
 
         // Część wyświetlająca ImGui
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->Pos);
@@ -190,7 +203,7 @@ int main(int, char**)
             }
             
 
-
+            ImGui::PushItemWidth(200);
             if (signal_panel)
             {
                 for (int d = 0; d < 10; d++)
@@ -206,22 +219,23 @@ int main(int, char**)
                 }
                 else
                 {
+                    
                     ImGui::InputDouble("Wartosc", &M, 0.5);
                     ImGui::InputDouble("Czas symulacji", &T, 0.5);
                 }
 
             }
+            ImGui::PopItemWidth();
+
+
             us.resize((1.0 * T / h) + 1);
+            
             for(int i = 0; i < 10; i++)
 			{
 				ImGui::Spacing();
 			}
-            int k = 0;
-            
-				
-			
-
-            if (ImGui::Button("Plot",ImVec2(200, 50)))
+   
+            if (ImGui::Button("Symulacja",ImVec2(200, 50)))
             {
                 showPlotWindow = true;
                 create_param(param);
@@ -279,9 +293,10 @@ int main(int, char**)
 
                 x_data.clear();
                 x_data.resize(total);
+
                 for (int i = 0; i < total-1 ; i++) //przekazywanie wartosci na wykresy
                 {
-                    x_data[i] = i;                   
+                    x_data[i] = i/(total);                   
                 }
 
                 f = 0;
