@@ -40,7 +40,7 @@ using namespace std;
 // zmienne globalne w programie
 
 double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
-std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy sinus
+std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy 
 std::vector <double> I((1.0 * T / h) + 1); // sygnał wyjściowy
 std::vector <double> W((1.0 * T / h) + 1);
 double M = 8; // amplituda sygnału wejściowego
@@ -144,11 +144,13 @@ int main(int, char**)
             ImGui::InputDouble("L1", &param.L1, 1);
             ImGui::InputDouble("ke", &param.ke, 1);
             ImGui::InputDouble("kt", &param.kt, 1);
+
             if (ImGui::Button("Sinus"))
             {
                 signal = 's';
                 signal_panel = true;
             };
+
             if (ImGui::Button("Prostokatna"))
             {
                 signal = 'p';
@@ -161,6 +163,12 @@ int main(int, char**)
                 signal_panel = true;
             };
 
+            if (ImGui::Button("Heavyside"))
+            {
+                signal = 'h';
+                signal_panel = true;
+            };
+
             if (signal_panel)
             {
                 for (int d = 0; d < 10; d++)
@@ -168,9 +176,17 @@ int main(int, char**)
                     ImGui::Spacing();
                 }
 
-                ImGui::InputDouble("Amplituda", &M, 0.5);
-                ImGui::InputDouble("T", &T, 0.5);
-                ImGui::InputDouble("Okres", &w, 0.5);
+                if (signal != 'h')
+                {
+                    ImGui::InputDouble("Amplituda", &M, 0.5);
+                    ImGui::InputDouble("T", &T, 0.5);
+                    ImGui::InputDouble("Okres", &w, 0.5);
+                }
+                else
+                {
+                    ImGui::InputDouble("Wartosc", &M, 0.5);
+                    ImGui::InputDouble("T", &T, 0.5);
+                }
 
             }
             us.resize((1.0 * T / h) + 1);
@@ -215,19 +231,22 @@ int main(int, char**)
                         }
                         us[i] = current_value; // sygnał wejściowy trójkątny
                     }
+                    else if (signal == 'h')
+                    {
+                        us[i] = M;
+                    }
                 }
+
                 I.clear(); W.clear();
                 I.resize(total); W.resize(total); // zmiana rozmiaru wektorów danych
-
-              
+      
                 counting(param, us, I, W, total, h);
 
                 x_data.clear();
                 x_data.resize(total);
                 for (int i = 0; i < total-1 ; i++) //przekazywanie wartosci na wykresy
                 {
-                    x_data[i] = i;
-                    
+                    x_data[i] = i;                   
                 }
 
                 f = 0;
@@ -246,7 +265,7 @@ int main(int, char**)
             ImGui::Begin("Wykresy", &showPlotWindow); // Pass the address of the boolean variable to control the window's visibility
 
             // Plot for 'Us'
-            //ImPlot::SetNextAxesToFit();
+            ImPlot::SetNextAxesToFit();
             ImPlot::SetNextLineStyle(ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Red color
             if (ImPlot::BeginPlot("Us"))
             {
