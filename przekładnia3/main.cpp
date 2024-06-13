@@ -128,7 +128,7 @@ int main(int, char**)
         ImGui::SetNextWindowSize(ImGui::GetMainViewport()->Size);
         if (ImGui::Begin("Przekładnia", nullptr, ImGuiWindowFlags_NoDecoration))
         {
-            ImGui::PushItemWidth(100);
+            ImGui::PushItemWidth(150);
             ImGui::InputDouble("J1", &param.J1, 1);
             ImGui::InputDouble("J2", &param.J2, 1);
             ImGui::InputDouble("n1", &param.n1, 1);
@@ -200,12 +200,14 @@ int main(int, char**)
 
                 if (signal == 's' || signal == 'p' || signal == 't')
                 {
+                    ImGui::PushItemWidth(200);
                     ImGui::InputDouble("Amplituda", &M, 0.5);
                     ImGui::InputDouble("Czas symulacji", &T, 0.5);
                     ImGui::InputDouble("Okres", &w, 0.5);
                 }
                 else
                 {
+                    ImGui::PushItemWidth(200);
                     ImGui::InputDouble("Wartosc", &M, 0.5);
                     ImGui::InputDouble("Czas symulacji", &T, 0.5);
                 }
