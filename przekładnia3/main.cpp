@@ -23,24 +23,9 @@ void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// deklaracje zasięgów
 
-
-// stałe w programie
-#define N 2 // rząd systemu
+//stale w programie
 #define PI 3.14159265 // liczba PI
-
-// zmienne globalne w programie
-
-//double T = 10.0; // całkowity czas symulacji – przedział [0 , T]
-//double h = 0.001; // krok obliczeń
-//double M = 8; // amplituda sygnału wejściowego
-//double w = 1; //okres wygnalu wejsciowego
-//std::vector <double> us((1.0 * T / h) + 1); // sygnał wejściowy 
-//std::vector <double> I((1.0 * T / h) + 1); // natężenie prądu
-//std::vector <double> W((1.0 * T / h) + 1); // prędkość kątowa
-//
-
 
 
 // Main code
