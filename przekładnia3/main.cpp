@@ -316,7 +316,7 @@ int main(int, char**)
                 showPlotWindow = false;
             }
 
-            ImGui::SetNextWindowSize(ImVec2(1200, 600), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(1200, 650), ImGuiCond_Always);
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
             ImGui::Begin("Wykresy", &showPlotWindow); // 
 
