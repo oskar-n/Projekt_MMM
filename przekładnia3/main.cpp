@@ -292,7 +292,7 @@ int main(int, char**)
 
                 for (int i = 0; i < total-1 ; i++) //przekazywanie wartosci na wykresy
                 {
-                    x_data[i] = i/(total);                   
+                    x_data[i] = T*i/(total);                   
                 }
 
                 f = 0;
